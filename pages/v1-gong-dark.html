@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CCK — Gong Dark</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d0e14;--surface:#16181f;--surface2:#1e2130;--border:#252a3a;--border2:#2e3450;
+--text:#e8eaf2;--muted:#7b82a0;--dim:#3a4060;
+--purple:#7c3aed;--purple-light:#9d6ef5;--purple-glow:rgba(124,58,237,0.15);
+--green:#22c55e;--orange:#f97316;--red:#ef4444;--yellow:#eab308;--blue:#3b82f6;
+--font:'Inter',sans-serif}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;height:100vh;display:flex;overflow:hidden}
+
+/* SIDEBAR */
+.sb{width:210px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sb-logo-icon{width:32px;height:32px;background:var(--purple);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff}
+.sb-logo-text{font-weight:700;font-size:14px;letter-spacing:-0.3px}
+.sb-logo-text span{color:var(--purple-light)}
+.sb-nav{flex:1;padding:10px 0;overflow-y:auto}
+.sb-section{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);padding:12px 16px 5px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 16px;cursor:pointer;color:var(--muted);font-size:12.5px;border-left:2px solid transparent;transition:all .15s}
+.sb-item:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.sb-item.active{color:var(--purple-light);border-left-color:var(--purple);background:var(--purple-glow);font-weight:500}
+.sb-item svg{width:14px;height:14px;flex-shrink:0}
+.sb-foot{padding:12px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.8}
+.sb-foot b{color:var(--purple-light)}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.topbar-title{font-weight:600;font-size:15px;flex:1}
+.topbar-title span{color:var(--muted);font-weight:400;font-size:12px;margin-left:8px}
+.chip{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:5px 10px;font-size:11.5px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s}
+.chip:hover,.chip.active{border-color:var(--purple);color:var(--purple-light)}
+.btn-primary{background:var(--purple);color:#fff;border:none;border-radius:7px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.btn-primary:hover{opacity:.85}
+
+/* TABS */
+.content{flex:1;overflow-y:auto;padding:20px}
+.tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid var(--border)}
+.tab{padding:9px 18px;cursor:pointer;font-size:12.5px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;font-weight:500}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--purple-light);border-bottom-color:var(--purple)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:18px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.c1::after{background:var(--purple)} .kpi.c2::after{background:var(--blue)} .kpi.c3::after{background:var(--green)} .kpi.c4::after{background:var(--orange)} .kpi.c5::after{background:var(--yellow)} .kpi.c6::after{background:var(--red)}
+.kpi-label{font-size:9.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.kpi-val{font-size:24px;font-weight:700;line-height:1;margin-bottom:4px}
+.kpi-sub{font-size:10px;color:var(--muted)}
+.kpi-sub.up{color:var(--green)} .kpi-sub.down{color:var(--red)}
+
+/* CHARTS ROW */
+.row2{display:grid;grid-template-columns:1fr 300px;gap:12px;margin-bottom:12px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+.card-title{font-weight:600;font-size:13px;margin-bottom:3px}
+.card-sub{font-size:10.5px;color:var(--muted);margin-bottom:14px}
+.row3{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);text-align:left;padding:7px 10px;border-bottom:1px solid var(--border);font-weight:500}
+.tbl td{padding:10px 10px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:12px}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr{cursor:pointer;transition:background .1s}
+.tbl tbody tr:hover td{background:rgba(124,58,237,.06)}
+.caller-cell{display:flex;align-items:center;gap:8px}
+.av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px;flex-shrink:0}
+.bar-wrap{display:flex;align-items:center;gap:6px}
+.bar{flex:1;height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px}
+.bval{font-size:10.5px;color:var(--muted);width:28px;text-align:right;font-variant-numeric:tabular-nums}
+.badge{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:500}
+.badge-green{background:rgba(34,197,94,.12);color:var(--green)}
+.badge-orange{background:rgba(249,115,22,.12);color:var(--orange)}
+.badge-red{background:rgba(239,68,68,.12);color:var(--red)}
+.badge-blue{background:rgba(59,130,246,.12);color:var(--blue)}
+.badge-purple{background:var(--purple-glow);color:var(--purple-light)}
+
+/* SESSION CARDS */
+.sess-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.sess-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+.sess-name{font-weight:600;font-size:14px;margin-bottom:3px}
+.sess-level{font-size:10px;color:var(--muted);margin-bottom:12px}
+.sess-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:11.5px}
+.sess-row:last-child{border:none}
+.sess-row span:last-child{font-weight:600;color:var(--text)}
+
+/* QUALITY TABLE */
+.outcome-pill{font-size:9px;padding:2px 8px;border-radius:10px;font-weight:600;border:1px solid}
+.pill-MTG{background:rgba(34,197,94,.1);color:#22c55e;border-color:rgba(34,197,94,.3)}
+.pill-VRB{background:rgba(59,130,246,.1);color:#3b82f6;border-color:rgba(59,130,246,.3)}
+.pill-NI{background:rgba(239,68,68,.1);color:#ef4444;border-color:rgba(239,68,68,.3)}
+
+/* DRAWER */
+.drawer{display:none;position:fixed;right:0;top:0;bottom:0;width:420px;background:var(--surface);border-left:1px solid var(--border2);z-index:100;flex-direction:column;animation:slIn .2s ease}
+.drawer.open{display:flex}
+@keyframes slIn{from{transform:translateX(20px);opacity:0}to{transform:none;opacity:1}}
+.dr-head{padding:18px 18px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.dr-title{font-weight:700;font-size:15px}
+.dr-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer}
+.dr-body{flex:1;overflow-y:auto;padding:18px}
+.dr-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.dr-mi{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.dr-mi-lbl{font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.dr-mi-val{font-size:15px;font-weight:600}
+.dr-section{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:14px 0 8px}
+.score-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)}
+.score-row:last-child{border:none}
+.sr-lbl{width:130px;font-size:11px;color:var(--muted)}
+.sr-bar{flex:1;height:5px;background:var(--border2);border-radius:3px;overflow:hidden}
+.sr-fill{height:100%;border-radius:3px}
+.sr-val{font-size:11px;width:24px;text-align:right;font-variant-numeric:tabular-nums}
+.insight{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:7px;font-size:11.5px;color:var(--muted);line-height:1.5}
+.insight-tag{font-size:9px;color:var(--purple-light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;font-weight:600}
+.transcript{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--muted);line-height:1.6;font-style:italic;margin-bottom:12px}
+
+/* OVERLAY */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:28px;width:480px;animation:slIn .2s ease}
+.modal-title{font-weight:700;font-size:17px;margin-bottom:4px}
+.modal-sub{font-size:12px;color:var(--muted);margin-bottom:20px}
+.form-lbl{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px}
+.form-inp,.form-sel{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;font-family:var(--font);transition:border-color .15s;margin-bottom:14px}
+.form-inp:focus,.form-sel:focus{border-color:var(--purple)}
+.form-sel option{background:var(--surface2)}
+.drop{border:2px dashed var(--border2);border-radius:8px;padding:22px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:14px}
+.drop:hover{border-color:var(--purple);background:var(--purple-glow)}
+.drop-icon{font-size:24px;margin-bottom:6px}
+.drop-txt{font-size:12px;color:var(--muted)}
+.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+.btn-ghost{background:none;border:1px solid var(--border2);color:var(--muted);padding:8px 16px;border-radius:7px;font-size:12px;cursor:pointer;font-family:var(--font);transition:all .15s}
+.btn-ghost:hover{border-color:var(--muted);color:var(--text)}
+
+svg text{font-family:'Inter',sans-serif}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sb">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">CCK</div>
+    <div class="sb-logo-text">Cold Call <span>Killers</span></div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Analytics</div>
+    <div class="sb-item active" onclick="setNav(this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+      Overview
+    </div>
+    <div class="sb-item" onclick="setNav(this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><polyline points="8,5 8,8 10,10"/></svg>
+      Sessions
+    </div>
+    <div class="sb-item" onclick="setNav(this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h8M2 12h10"/></svg>
+      Call Log
+    </div>
+    <div class="sb-section">Performance</div>
+    <div class="sb-item" onclick="setNav(this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+      Callers
+    </div>
+    <div class="sb-item" onclick="setNav(this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h10v10H3z"/><path d="M6 7l2 2 4-4"/></svg>
+      Scorecards
+    </div>
+    <div class="sb-section">Data</div>
+    <div class="sb-item" onclick="openModal()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 5l3-3 3 3"/><path d="M3 11v2h10v-2"/></svg>
+      Upload
+    </div>
+  </div>
+  <div class="sb-foot">
+    <div>Session: <b>Mar 28, 2026</b></div>
+    <div>Client: <b>Unknown</b></div>
+    <div>Callers: <b>3</b> &nbsp;|&nbsp; Dials: <b>78</b></div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">Intelligence Overview <span>Mar 28, 2026</span></div>
+    <div class="chip active">All Callers ▾</div>
+    <div class="chip">Mar 28, 2026 ▾</div>
+    <button class="btn-primary" onclick="openModal()">+ New Analysis</button>
+  </div>
+
+  <div class="content">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('combined',this)">Final Combined</div>
+      <div class="tab" onclick="switchTab('session',this)">Session Performance</div>
+      <div class="tab" onclick="switchTab('quality',this)">Call Quality Analysis</div>
+    </div>
+
+    <!-- TAB 1: FINAL COMBINED -->
+    <div class="tab-panel active" id="tab-combined">
+      <div class="kpi-grid">
+        <div class="kpi c1"><div class="kpi-label">Total Dials</div><div class="kpi-val">78</div><div class="kpi-sub">3 callers</div></div>
+        <div class="kpi c2"><div class="kpi-label">Total Connects</div><div class="kpi-val">10</div><div class="kpi-sub up">12.8% rate</div></div>
+        <div class="kpi c3"><div class="kpi-label">Meetings Booked</div><div class="kpi-val">1</div><div class="kpi-sub up">David Li</div></div>
+        <div class="kpi c4"><div class="kpi-label">Total Engagements</div><div class="kpi-val">5</div><div class="kpi-sub">verbal + mtg</div></div>
+        <div class="kpi c5"><div class="kpi-label">Avg Quality Score</div><div class="kpi-val">32.3</div><div class="kpi-sub down">Needs coaching</div></div>
+        <div class="kpi c6"><div class="kpi-label">Total KPI Points</div><div class="kpi-val">7</div><div class="kpi-sub">across session</div></div>
+      </div>
+      <div class="row2">
+        <div class="card">
+          <div class="card-title">Caller Performance Comparison</div>
+          <div class="card-sub">Dials vs Connects — ranked by quality score</div>
+          <svg viewBox="0 0 520 160" width="100%">
+            <line x1="60" y1="10" x2="60" y2="130" stroke="#252a3a" stroke-width="1"/>
+            <line x1="60" y1="130" x2="510" y2="130" stroke="#252a3a" stroke-width="1"/>
+            <!-- David Li -->
+            <rect x="80" y="28" width="30" height="102" rx="3" fill="#7c3aed" opacity=".85"/>
+            <rect x="116" y="119" width="30" height="11" rx="3" fill="#22c55e" opacity=".9"/>
+            <text x="111" y="148" font-size="9" fill="#7b82a0" text-anchor="middle">David Li</text>
+            <!-- Savanah -->
+            <rect x="240" y="78" width="30" height="52" rx="3" fill="#7c3aed" opacity=".85"/>
+            <rect x="276" y="123" width="30" height="7" rx="3" fill="#22c55e" opacity=".9"/>
+            <text x="271" y="148" font-size="9" fill="#7b82a0" text-anchor="middle">Savanah</text>
+            <!-- Mysterious -->
+            <rect x="400" y="127" width="30" height="3" rx="3" fill="#7c3aed" opacity=".5"/>
+            <text x="431" y="148" font-size="9" fill="#7b82a0" text-anchor="middle">Mysterious</text>
+            <!-- Labels -->
+            <text x="95" y="24" font-size="9" fill="#e8eaf2" text-anchor="middle" font-weight="600">52</text>
+            <text x="255" y="74" font-size="9" fill="#e8eaf2" text-anchor="middle" font-weight="600">25</text>
+            <text x="415" y="123" font-size="9" fill="#e8eaf2" text-anchor="middle" font-weight="600">1</text>
+            <!-- Legend -->
+            <rect x="360" y="12" width="10" height="10" rx="2" fill="#7c3aed"/>
+            <text x="374" y="21" font-size="9" fill="#7b82a0">Dials</text>
+            <rect x="360" y="27" width="10" height="10" rx="2" fill="#22c55e"/>
+            <text x="374" y="36" font-size="9" fill="#7b82a0">Connects</text>
+          </svg>
+        </div>
+        <div class="card">
+          <div class="card-title">Score Averages</div>
+          <div class="card-sub">David Li BDA · 8 calls scored</div>
+          <div style="margin-top:4px">
+            <div class="score-row"><div class="sr-lbl">Opener</div><div class="sr-bar"><div class="sr-fill" style="width:47.5%;background:#7c3aed"></div></div><div class="sr-val">4.75</div></div>
+            <div class="score-row"><div class="sr-lbl">Tonality</div><div class="sr-bar"><div class="sr-fill" style="width:50%;background:#3b82f6"></div></div><div class="sr-val">5.0</div></div>
+            <div class="score-row"><div class="sr-lbl">Pitch Clarity</div><div class="sr-bar"><div class="sr-fill" style="width:47.5%;background:#22c55e"></div></div><div class="sr-val">4.75</div></div>
+            <div class="score-row"><div class="sr-lbl">Interest</div><div class="sr-bar"><div class="sr-fill" style="width:20%;background:#f97316"></div></div><div class="sr-val">2.0</div></div>
+            <div class="score-row"><div class="sr-lbl">Close Quality</div><div class="sr-bar"><div class="sr-fill" style="width:80%;background:#eab308"></div></div><div class="sr-val">8.0</div></div>
+            <div class="score-row"><div class="sr-lbl">Overall</div><div class="sr-bar"><div class="sr-fill" style="width:31.2%;background:#ef4444"></div></div><div class="sr-val">3.12</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Caller Summary</div>
+        <div class="card-sub">All callers · Final combined view</div>
+        <table class="tbl">
+          <thead><tr>
+            <th>Caller</th><th>Level</th><th>Dials</th><th>Connects</th><th>Connect%</th>
+            <th>Engagements</th><th>KPI Pts</th><th>Quality Score</th><th>Status</th>
+          </tr></thead>
+          <tbody>
+            <tr onclick="openDrawerCombined('David Li - BDA')">
+              <td><div class="caller-cell"><div class="av" style="background:rgba(124,58,237,.2);color:#9d6ef5">DL</div>David Li - BDA</div></td>
+              <td><span class="badge badge-purple">Level 1 BDA</span></td>
+              <td>52</td><td>8</td>
+              <td><div class="bar-wrap"><div class="bar"><div class="bar-fill" style="width:15.4%;background:#7c3aed"></div></div><div class="bval">15.4%</div></div></td>
+              <td>3</td><td>5</td>
+              <td><div class="bar-wrap"><div class="bar"><div class="bar-fill" style="width:34.56%;background:#22c55e"></div></div><div class="bval">34.6</div></div></td>
+              <td><span class="badge badge-orange">Pitch Coaching</span></td>
+            </tr>
+            <tr onclick="openDrawerCombined('Savanah')">
+              <td><div class="caller-cell"><div class="av" style="background:rgba(59,130,246,.2);color:#3b82f6">SV</div>Savanah</div></td>
+              <td><span class="badge badge-blue">FT Caller</span></td>
+              <td>25</td><td>2</td>
+              <td><div class="bar-wrap"><div class="bar"><div class="bar-fill" style="width:8%;background:#3b82f6"></div></div><div class="bval">8.0%</div></div></td>
+              <td>2</td><td>2</td>
+              <td><div class="bar-wrap"><div class="bar"><div class="bar-fill" style="width:30%;background:#f97316"></div></div><div class="bval">30.0</div></div></td>
+              <td><span class="badge badge-orange">Pitch Coaching</span></td>
+            </tr>
+            <tr onclick="openDrawerCombined('Mysterious')">
+              <td><div class="caller-cell"><div class="av" style="background:rgba(239,68,68,.2);color:#ef4444">MY</div>Mysterious</div></td>
+              <td><span class="badge badge-red">mysterious</span></td>
+              <td>1</td><td>0</td>
+              <td><div class="bar-wrap"><div class="bar"><div class="bar-fill" style="width:0%;background:#ef4444"></div></div><div class="bval">0%</div></div></td>
+              <td>0</td><td>0</td>
+              <td><div class="bar-wrap"><div class="bar"><div class="bar-fill" style="width:0%;background:#ef4444"></div></div><div class="bval">0</div></div></td>
+              <td><span class="badge badge-red">Developing</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: SESSION PERFORMANCE -->
+    <div class="tab-panel" id="tab-session">
+      <div class="sess-grid">
+        <div class="sess-card">
+          <div class="sess-name">David Li - BDA</div>
+          <div class="sess-level">Level 1 BDA &nbsp;·&nbsp; <span class="badge badge-orange">Pitch Coaching</span></div>
+          <div class="sess-row"><span>Total Dials</span><span>52</span></div>
+          <div class="sess-row"><span>Connects</span><span>8</span></div>
+          <div class="sess-row"><span>Connect Rate</span><span style="color:#22c55e">15.4%</span></div>
+          <div class="sess-row"><span>Active Talk Time</span><span>00:26:55</span></div>
+          <div class="sess-row"><span>Verbally Agreed</span><span>2</span></div>
+          <div class="sess-row"><span>Meetings Scheduled</span><span style="color:#22c55e">1</span></div>
+          <div class="sess-row"><span>Engagement Rate</span><span>37.5%</span></div>
+          <div class="sess-row"><span>KPI Points</span><span>5</span></div>
+          <div class="sess-row"><span>KPI / Hour</span><span>11.15</span></div>
+          <div class="sess-row"><span>Quality Score</span><span>34.58</span></div>
+          <div class="sess-row"><span>Calls Analysed</span><span>8</span></div>
+          <div class="sess-row"><span>Calls Flagged</span><span style="color:#ef4444">44</span></div>
+        </div>
+        <div class="sess-card">
+          <div class="sess-name">Savanah</div>
+          <div class="sess-level">FT Caller &nbsp;·&nbsp; <span class="badge badge-orange">Pitch Coaching</span></div>
+          <div class="sess-row"><span>Total Dials</span><span>25</span></div>
+          <div class="sess-row"><span>Connects</span><span>2</span></div>
+          <div class="sess-row"><span>Connect Rate</span><span style="color:#f97316">8.0%</span></div>
+          <div class="sess-row"><span>Active Talk Time</span><span>00:13:21</span></div>
+          <div class="sess-row"><span>Verbally Agreed</span><span>2</span></div>
+          <div class="sess-row"><span>Meetings Scheduled</span><span>0</span></div>
+          <div class="sess-row"><span>Engagement Rate</span><span style="color:#22c55e">100%</span></div>
+          <div class="sess-row"><span>KPI Points</span><span>2</span></div>
+          <div class="sess-row"><span>KPI / Hour</span><span>8.99</span></div>
+          <div class="sess-row"><span>Quality Score</span><span>30.0</span></div>
+          <div class="sess-row"><span>Calls Analysed</span><span>2</span></div>
+          <div class="sess-row"><span>Calls Flagged</span><span style="color:#ef4444">24</span></div>
+        </div>
+        <div class="sess-card">
+          <div class="sess-name">Mysterious</div>
+          <div class="sess-level">mysterious &nbsp;·&nbsp; <span class="badge badge-red">Developing</span></div>
+          <div class="sess-row"><span>Total Dials</span><span>1</span></div>
+          <div class="sess-row"><span>Connects</span><span>0</span></div>
+          <div class="sess-row"><span>Connect Rate</span><span style="color:#ef4444">0%</span></div>
+          <div class="sess-row"><span>Active Talk Time</span><span>00:00:06</span></div>
+          <div class="sess-row"><span>Verbally Agreed</span><span>0</span></div>
+          <div class="sess-row"><span>Meetings Scheduled</span><span>0</span></div>
+          <div class="sess-row"><span>Engagement Rate</span><span>0%</span></div>
+          <div class="sess-row"><span>KPI Points</span><span>0</span></div>
+          <div class="sess-row"><span>KPI / Hour</span><span>0</span></div>
+          <div class="sess-row"><span>Quality Score</span><span>0</span></div>
+          <div class="sess-row"><span>Calls Analysed</span><span>0</span></div>
+          <div class="sess-row"><span>Calls Flagged</span><span>1</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Session Activity — Dials vs Connects vs Engagements</div>
+        <div class="card-sub">Single session · Mar 28 2026</div>
+        <svg viewBox="0 0 560 140" width="100%">
+          <line x1="50" y1="10" x2="50" y2="110" stroke="#252a3a" stroke-width="1"/>
+          <line x1="50" y1="110" x2="540" y2="110" stroke="#252a3a" stroke-width="1"/>
+          <text x="40" y="14" font-size="8" fill="#3a4060" text-anchor="end">52</text>
+          <text x="40" y="68" font-size="8" fill="#3a4060" text-anchor="end">26</text>
+          <text x="40" y="113" font-size="8" fill="#3a4060" text-anchor="end">0</text>
+          <!-- David Li dials -->
+          <rect x="80" y="14" width="35" height="96" rx="3" fill="#7c3aed" opacity=".8"/>
+          <!-- David Li connects -->
+          <rect x="120" y="96" width="35" height="14" rx="3" fill="#22c55e" opacity=".9"/>
+          <!-- David Li engagements -->
+          <rect x="160" y="104" width="35" height="6" rx="3" fill="#3b82f6" opacity=".9"/>
+          <text x="120" y="128" font-size="9" fill="#7b82a0" text-anchor="middle">David Li</text>
+          <!-- Savanah dials -->
+          <rect x="270" y="60" width="35" height="50" rx="3" fill="#7c3aed" opacity=".8"/>
+          <rect x="310" y="103" width="35" height="7" rx="3" fill="#22c55e" opacity=".9"/>
+          <rect x="350" y="104" width="35" height="6" rx="3" fill="#3b82f6" opacity=".9"/>
+          <text x="310" y="128" font-size="9" fill="#7b82a0" text-anchor="middle">Savanah</text>
+          <!-- Mysterious -->
+          <rect x="440" y="108" width="35" height="2" rx="3" fill="#7c3aed" opacity=".5"/>
+          <text x="457" y="128" font-size="9" fill="#7b82a0" text-anchor="middle">Mysterious</text>
+          <!-- legend -->
+          <rect x="400" y="12" width="8" height="8" rx="1" fill="#7c3aed"/>
+          <text x="412" y="20" font-size="8" fill="#7b82a0">Dials</text>
+          <rect x="400" y="24" width="8" height="8" rx="1" fill="#22c55e"/>
+          <text x="412" y="32" font-size="8" fill="#7b82a0">Connects</text>
+          <rect x="400" y="36" width="8" height="8" rx="1" fill="#3b82f6"/>
+          <text x="412" y="44" font-size="8" fill="#7b82a0">Engagements</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- TAB 3: CALL QUALITY ANALYSIS -->
+    <div class="tab-panel" id="tab-quality">
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-title">All Scored Calls</div>
+        <div class="card-sub">Click any row to view full scorecard and transcript</div>
+        <table class="tbl" id="quality-tbl">
+          <thead><tr>
+            <th>Call ID</th><th>Caller</th><th>Company</th><th>Industry</th>
+            <th>Duration</th><th>Outcome</th><th>Opener</th><th>Tonality</th>
+            <th>Pitch</th><th>Interest</th><th>Overall</th><th>Talk%</th>
+          </tr></thead>
+          <tbody id="quality-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER -->
+<div class="drawer" id="drawer">
+  <div class="dr-head">
+    <div class="dr-title" id="dr-title">Caller Detail</div>
+    <button class="dr-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="dr-body" id="dr-body"></div>
+</div>
+
+<!-- UPLOAD MODAL -->
+<div class="overlay" id="modal" onclick="closeModalBg(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">New Analysis Session</div>
+    <div class="modal-sub">Upload call recordings ZIP and call log sheet to begin</div>
+    <label class="form-lbl">Analyst / Session Name</label>
+    <input class="form-inp" placeholder="e.g. David Li — Mar 28 Sprint">
+    <label class="form-lbl">Call Recordings (ZIP)</label>
+    <div class="drop" onclick="this.querySelector('input').click()">
+      <div class="drop-icon">🎙</div>
+      <div class="drop-txt">Drop .zip of recordings or click to browse</div>
+      <input type="file" accept=".zip" style="display:none">
+    </div>
+    <label class="form-lbl">Call Log Sheet</label>
+    <div class="drop" onclick="this.querySelector('input').click()">
+      <div class="drop-icon">📊</div>
+      <div class="drop-txt">Drop .xlsx call log or click to browse</div>
+      <input type="file" accept=".xlsx" style="display:none">
+    </div>
+    <div class="modal-row">
+      <div><label class="form-lbl">Sheet Selection</label>
+      <select class="form-sel"><option>All Sheets</option><option>Sheet 1</option><option>Sheet 2</option></select></div>
+      <div><label class="form-lbl">Analysis Period</label>
+      <input class="form-inp" placeholder="e.g. Mar 28, 2026" style="margin:0"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="closeModal()">Run Analysis →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const calls=[
+  {id:'rc_1155',caller:'David Li - BDA',company:'WorkWiser.io',industry:'Outsourcing',dur:12,outcome:'NI',opener:1,tonality:1,pitch:1,interest:1,overall:1,talk:100,questions:0,obj_raised:'N',obj_handled:'N/A',close_att:'N',next_step:'N',transcript:'Please leave your message for 346-71629.',opener_notes:'No opener present; only a generic voicemail instruction.',flag:'fuzzy_match'},
+  {id:'rc_354',caller:'Savanah',company:'World Wide Outsource',industry:'Business Consulting',dur:12,outcome:'VRB',opener:1,tonality:1,pitch:1,interest:1,overall:1,talk:100,questions:0,obj_raised:'N',obj_handled:'N/A',close_att:'N',next_step:'N',transcript:'The person you are trying to reach is currently unavailable.',opener_notes:'No actual opener delivered as the call went directly to voicemail.',flag:'no_benchmark'},
+  {id:'rc_919',caller:'David Li - BDA',company:'Staffed INC.',industry:'Staffing & Recruiting',dur:29,outcome:'NI',opener:8,tonality:7,pitch:9,interest:1,overall:4,talk:100,questions:1,obj_raised:'Y',obj_handled:'N',close_att:'N',next_step:'N',transcript:"Hi, is this Martin? Yes. Hi, Martin. This is David. I'm calling from 550 Holdings...",opener_notes:'Opener is direct and establishes context quickly, but could be more personalized.',flag:'no_benchmark'},
+  {id:'rc_1078',caller:'David Li - BDA',company:'AVAS',industry:'Real Estate',dur:9,outcome:'VRB',opener:3,tonality:5,pitch:2,interest:1,overall:2,talk:100,questions:0,obj_raised:'N',obj_handled:'N/A',close_att:'N',next_step:'N',transcript:'Hello, Yaris. Jim. Sorry I missed your call.',opener_notes:'Opener is incomplete and confusing; appears to be a voicemail message.',flag:'no_benchmark'},
+  {id:'rc_940',caller:'David Li - BDA',company:'Abuelita Mexican Food',industry:'Food & Beverages',dur:75,outcome:'NI',opener:4,tonality:6,pitch:5,interest:2,overall:3,talk:63.6,questions:1,obj_raised:'Y',obj_handled:'N',close_att:'N',next_step:'N',transcript:"Hi, yeah, I'm David. We haven't spoken before, but we've been looking at strong operators in the beverage industry...",opener_notes:'Opener somewhat unclear, interrupted by technical issues.',flag:'no_benchmark'},
+  {id:'rc_988',caller:'David Li - BDA',company:'El Condor',industry:'Retail',dur:26,outcome:'VRB',opener:2,tonality:5,pitch:3,interest:1,overall:2,talk:100,questions:0,obj_raised:'N',obj_handled:'N/A',close_att:'N',next_step:'N',transcript:"Hey, your leader, Evan Romero. I'm sorry I missed your call.",opener_notes:'The opener is incomplete and confusing; voicemail message rather than direct cold call.',flag:'no_benchmark'},
+  {id:'rc_1017',caller:'David Li - BDA',company:'San Jose Network Ltd.',industry:'Advertising',dur:34,outcome:'NI',opener:6,tonality:5,pitch:7,interest:1,overall:3,talk:100,questions:1,obj_raised:'Y',obj_handled:'N',close_att:'N',next_step:'N',transcript:"This is George. Hi, I'm David. I'm with 550 holdings. We've been looking at strong operators in advertising...",opener_notes:'Clear but could be more engaging or personalized.',flag:'no_benchmark'},
+  {id:'rc_98',caller:'Savanah',company:'QRoom LLC',industry:'Marketing Services',dur:140,outcome:'VRB',opener:6,tonality:7,pitch:8,interest:4,overall:5,talk:75.7,questions:4,obj_raised:'Y',obj_handled:'N',close_att:'N',next_step:'Y',transcript:'Hi babe, this is Savannah calling from 550 Holdings. Am I speaking with Ali? No, my name is Andio...',opener_notes:'Started with casual greeting, had initial confusion about identity but quickly corrected.',flag:'no_benchmark'},
+  {id:'rc_1350',caller:'David Li - BDA',company:'GraceMark Solutions',industry:'Staffing & Recruiting',dur:166,outcome:'MTG',opener:8,tonality:7,pitch:6,interest:7,overall:7,talk:71.1,questions:3,obj_raised:'Y',obj_handled:'Y',close_att:'Y',next_step:'Y',transcript:"Hi Ernesto, this is David. I'm calling from 550 Holdings. We've been looking at strong operators in staffing...",opener_notes:'Direct, establishes credibility, introduces relevant topic. Could be smoother with less filler words.',flag:'no_benchmark'},
+  {id:'rc_1270',caller:'David Li - BDA',company:'Agility 360',industry:'Financial Services',dur:61,outcome:'NI',opener:6,tonality:4,pitch:5,interest:2,overall:3,talk:14.4,questions:4,obj_raised:'Y',obj_handled:'N',close_att:'N',next_step:'N',transcript:"Hi, Cesar. I'm David. I'm calling from 550 Holdings. We've been looking at strong operators in financial services...",opener_notes:"Opener identifies caller and company but somewhat abrupt and lacks personalization.",flag:'no_benchmark'},
+];
+const combined={
+  'David Li - BDA':{level:'Level 1 BDA',dials:52,connects:8,connect_rate:15.4,engagements:3,eng_rate:37.5,mtg_conv:33.3,kpi:5,kpi_hr:11.15,quality:34.56,opener:4.75,tonality:5.0,pitch:4.75,interest:2.0,close_q:8.0,overall:3.12,close_att_rate:12.5,obj_handle:20,calls_scored:8,status:'Pitch Coaching'},
+  'Savanah':{level:'FT Caller',dials:25,connects:2,connect_rate:8.0,engagements:2,eng_rate:100,mtg_conv:0,kpi:2,kpi_hr:8.99,quality:30.0,opener:3.5,tonality:4.0,pitch:4.5,interest:2.5,close_q:'N/A',overall:3.0,close_att_rate:0,obj_handle:0,calls_scored:2,status:'Pitch Coaching'},
+  'Mysterious':{level:'mysterious',dials:1,connects:0,connect_rate:0,engagements:0,eng_rate:0,mtg_conv:0,kpi:0,kpi_hr:0,quality:0,opener:'N/A',tonality:'N/A',pitch:'N/A',interest:'N/A',close_q:'N/A',overall:'N/A',close_att_rate:0,obj_handle:0,calls_scored:0,status:'Developing'},
+};
+const outcomeColor={MTG:'pill-MTG',VRB:'pill-VRB',NI:'pill-NI'};
+
+function setNav(el){document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));el.classList.add('active');}
+function switchTab(id,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+}
+function openModal(){document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+function closeModalBg(e){if(e.target===document.getElementById('modal'))closeModal();}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');}
+
+function openDrawerCombined(name){
+  const d=combined[name]; if(!d)return;
+  document.getElementById('dr-title').textContent=name+' — Combined Summary';
+  const b=document.getElementById('dr-body');
+  const scores=['opener','tonality','pitch','interest','close_q','overall'];
+  const labels=['Opener Score','Tonality','Pitch Clarity','Interest','Close Quality','Overall'];
+  const colors=['#7c3aed','#3b82f6','#22c55e','#f97316','#eab308','#ef4444'];
+  const max=[10,10,10,10,10,10];
+  let scoreRows=scores.map((s,i)=>{
+    const v=d[s]; const pct=v==='N/A'?0:(v/max[i]*100);
+    return `<div class="score-row"><div class="sr-lbl">${labels[i]}</div><div class="sr-bar"><div class="sr-fill" style="width:${pct}%;background:${colors[i]}"></div></div><div class="sr-val">${v}</div></div>`;
+  }).join('');
+  b.innerHTML=`
+    <div class="dr-meta">
+      <div class="dr-mi"><div class="dr-mi-lbl">Level</div><div class="dr-mi-val" style="font-size:13px">${d.level}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Status</div><div class="dr-mi-val" style="font-size:13px;color:#f97316">${d.status}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Total Dials</div><div class="dr-mi-val">${d.dials}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Connects</div><div class="dr-mi-val" style="color:#22c55e">${d.connects}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Connect Rate</div><div class="dr-mi-val">${d.connect_rate}%</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">KPI Points</div><div class="dr-mi-val">${d.kpi}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">KPI / Hour</div><div class="dr-mi-val">${d.kpi_hr}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Quality Score</div><div class="dr-mi-val">${d.quality}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Engagement Rate</div><div class="dr-mi-val">${d.eng_rate}%</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Calls Scored</div><div class="dr-mi-val">${d.calls_scored}</div></div>
+    </div>
+    <div class="dr-section">Score Breakdown (avg)</div>
+    ${scoreRows}
+    <div class="dr-section">Rates</div>
+    <div class="insight"><div class="insight-tag">Close Attempt Rate</div>${d.close_att_rate}% of connected calls</div>
+    <div class="insight"><div class="insight-tag">Objection Handle Rate</div>${d.obj_handle}% of objections handled</div>
+    <div class="insight"><div class="insight-tag">Meeting Conversion</div>${d.mtg_conv}% of engagements → meetings</div>
+  `;
+  document.getElementById('drawer').classList.add('open');
+}
+
+function openDrawerCall(idx){
+  const c=calls[idx];
+  document.getElementById('dr-title').textContent=c.id+' — '+c.company;
+  const scores=[c.opener,c.tonality,c.pitch,c.interest,c.close_q||0,c.overall];
+  const labels=['Opener','Tonality','Pitch Clarity','Interest','Close Quality','Overall'];
+  const colors=['#7c3aed','#3b82f6','#22c55e','#f97316','#eab308','#ef4444'];
+  let scoreRows=scores.map((v,i)=>{
+    const pct=typeof v==='number'?(v/10*100):0;
+    return `<div class="score-row"><div class="sr-lbl">${labels[i]}</div><div class="sr-bar"><div class="sr-fill" style="width:${pct}%;background:${colors[i]}"></div></div><div class="sr-val">${v||'N/A'}</div></div>`;
+  }).join('');
+  document.getElementById('dr-body').innerHTML=`
+    <div class="dr-meta">
+      <div class="dr-mi"><div class="dr-mi-lbl">Caller</div><div class="dr-mi-val" style="font-size:12px">${c.caller}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Outcome</div><div class="dr-mi-val"><span class="outcome-pill pill-${c.outcome}">${c.outcome}</span></div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Duration</div><div class="dr-mi-val">${c.dur}s</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Talk Ratio</div><div class="dr-mi-val">${c.talk}%</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Questions Asked</div><div class="dr-mi-val">${c.questions}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Next Step</div><div class="dr-mi-val" style="color:${c.next_step==='Y'?'#22c55e':'#ef4444'}">${c.next_step}</div></div>
+    </div>
+    <div class="dr-section">Score Breakdown</div>
+    ${scoreRows}
+    <div class="dr-section">Opener Notes</div>
+    <div class="insight"><div class="insight-tag">AI Analysis</div>${c.opener_notes}</div>
+    <div class="dr-section">Transcript Snippet</div>
+    <div class="transcript">"${c.transcript}"</div>
+    <div class="dr-section">Flags</div>
+    <div class="insight"><div class="insight-tag">Flag</div>${c.flag}</div>
+    <div class="insight"><div class="insight-tag">Objection Raised</div>${c.obj_raised} &nbsp;·&nbsp; Handled: ${c.obj_handled} &nbsp;·&nbsp; Close Attempted: ${c.close_att}</div>
+  `;
+  document.getElementById('drawer').classList.add('open');
+}
+
+// Populate quality table
+(function(){
+  const tbody=document.getElementById('quality-tbody');
+  calls.forEach((c,i)=>{
+    const tr=document.createElement('tr');
+    tr.onclick=()=>openDrawerCall(i);
+    const scoreColor=(v)=>{if(v>=7)return '#22c55e';if(v>=4)return '#eab308';return '#ef4444';};
+    tr.innerHTML=`
+      <td style="font-size:10.5px;color:#7b82a0;font-variant-numeric:tabular-nums">${c.id}</td>
+      <td><div class="caller-cell"><div class="av" style="background:rgba(124,58,237,.15);color:#9d6ef5;font-size:9px">${c.caller.split(' ').map(x=>x[0]).join('').slice(0,2)}</div>${c.caller}</div></td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.company}</td>
+      <td style="font-size:11px;color:#7b82a0">${c.industry}</td>
+      <td>${c.dur}s</td>
+      <td><span class="outcome-pill pill-${c.outcome}">${c.outcome}</span></td>
+      <td style="color:${scoreColor(c.opener)};font-weight:600">${c.opener}</td>
+      <td style="color:${scoreColor(c.tonality)};font-weight:600">${c.tonality}</td>
+      <td style="color:${scoreColor(c.pitch)};font-weight:600">${c.pitch}</td>
+      <td style="color:${scoreColor(c.interest)};font-weight:600">${c.interest}</td>
+      <td style="color:${scoreColor(c.overall)};font-weight:600">${c.overall}</td>
+      <td>${c.talk}%</td>
+    `;
+    tbody.appendChild(tr);
+  });
+})();
+</script>
+</body>
+</html>

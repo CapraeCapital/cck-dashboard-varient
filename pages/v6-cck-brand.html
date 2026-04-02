@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CCK — Intelligence Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Special+Elite&family=Oswald:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --amber-light:#e8a840;
+  --amber:#c87820;
+  --amber-dark:#7a4010;
+  --blood:#5c0000;
+  --rust:#411208;
+  --burnt:#2a1208;
+  --char:#0a0805;
+  --parchment:#e8d090;
+  --aged:#c8a870;
+  --ink:#1a1008;
+  --green:#3daa6f;
+  --data-blue:#2a70c0;
+}
+body{
+  background:var(--char);
+  color:var(--parchment);
+  font-family:'Special Elite',cursive;
+  font-size:13px;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  cursor:crosshair;
+}
+button,a,.clickable{cursor:pointer}
+
+/* ── NOISE TEXTURE OVERLAY ── */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:1000;
+  opacity:.6;
+}
+
+/* ── TOP NAV ── */
+.topnav{
+  background:linear-gradient(180deg,#0e0a04 0%,#0a0805 100%);
+  border-bottom:2px solid var(--amber);
+  display:flex;
+  align-items:stretch;
+  flex-shrink:0;
+  position:relative;
+  z-index:10;
+}
+.topnav::after{
+  content:'';
+  position:absolute;
+  bottom:-6px;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,transparent,rgba(200,120,32,.3),transparent);
+  pointer-events:none;
+}
+.brand-zone{
+  padding:10px 20px;
+  border-right:1px solid rgba(200,120,32,.25);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-shrink:0;
+}
+.brand-skull{
+  width:36px;height:36px;
+  background:linear-gradient(135deg,var(--blood),#3a0000);
+  border:2px solid var(--amber);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+  box-shadow:3px 3px 0 rgba(0,0,0,.7);
+}
+.brand-name{
+  font-family:'Bangers',cursive;
+  font-size:22px;
+  letter-spacing:4px;
+  color:var(--amber-light);
+  text-shadow:2px 2px 0 rgba(100,30,0,.9);
+  line-height:1;
+}
+.brand-sub{
+  font-family:'Oswald',sans-serif;
+  font-size:9px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--aged);
+  opacity:.7;
+  margin-top:2px;
+}
+.nav-tabs{
+  display:flex;
+  flex:1;
+}
+.nav-tab{
+  flex:1;
+  padding:10px 6px;
+  text-align:center;
+  font-family:'Bangers',cursive;
+  font-size:13px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  border-right:.5px solid rgba(200,120,32,.15);
+  cursor:pointer;
+  transition:all .15s;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+}
+.nav-tab.active{
+  background:linear-gradient(180deg,var(--amber),var(--amber-dark));
+  color:var(--char);
+}
+.nav-tab.active::after{
+  content:'';
+  position:absolute;
+  bottom:-8px;left:50%;transform:translateX(-50%);
+  width:0;height:0;
+  border-left:7px solid transparent;
+  border-right:7px solid transparent;
+  border-top:8px solid var(--amber-dark);
+}
+.nav-tab.inactive{
+  background:#0e0905;
+  color:var(--aged);
+}
+.nav-tab.inactive:hover{
+  background:rgba(200,120,32,.08);
+  color:var(--amber-light);
+}
+.nav-right{
+  padding:8px 16px;
+  border-left:1px solid rgba(200,120,32,.25);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.btn-primary{
+  background:linear-gradient(135deg,#8a2000,var(--blood));
+  color:var(--parchment);
+  border:2px solid var(--amber);
+  padding:8px 16px;
+  font-family:'Bangers',cursive;
+  font-size:12px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  border-radius:0;
+  cursor:pointer;
+  box-shadow:3px 3px 0 rgba(0,0,0,.7);
+  transition:all .15s;
+}
+.btn-primary:hover{box-shadow:5px 5px 0 rgba(0,0,0,.7);transform:translate(-1px,-1px);}
+.btn-ghost{
+  background:rgba(0,0,0,.5);
+  color:var(--parchment);
+  border:2px solid var(--amber-dark);
+  padding:8px 14px;
+  font-family:'Bangers',cursive;
+  font-size:12px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  border-radius:0;
+  cursor:pointer;
+  transition:all .15s;
+}
+.btn-ghost:hover{border-color:var(--amber);color:var(--amber-light);}
+
+/* ── SESSION STRIP ── */
+.sess-strip{
+  background:linear-gradient(90deg,#0e0a04,#120c04,#0e0a04);
+  border-bottom:1px solid rgba(200,120,32,.2);
+  padding:7px 20px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  flex-shrink:0;
+  font-family:'Oswald',sans-serif;
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--aged);
+}
+.sess-label{color:var(--amber);font-weight:500}
+.sess-divider{color:rgba(200,120,32,.3)}
+.sess-tag{
+  font-size:9px;
+  padding:2px 10px;
+  border:1px solid rgba(200,120,32,.4);
+  color:var(--amber-light);
+  background:rgba(92,0,0,.4);
+  letter-spacing:1px;
+}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto;padding:18px 20px}
+.tab-pane{display:none}.tab-pane.active{display:block}
+
+/* ── KPI STRIKE CARDS ── */
+.strike-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}
+.strike{
+  background:linear-gradient(160deg,#1a0e04,#0e0804);
+  border:1.5px solid var(--amber-dark);
+  box-shadow:4px 4px 0 rgba(0,0,0,.7);
+  padding:12px 14px;
+  position:relative;
+  overflow:hidden;
+  cursor:pointer;
+  transition:all .2s;
+}
+.strike:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 rgba(0,0,0,.7);}
+.strike::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--amber),transparent);
+}
+.strike-label{
+  font-family:'Oswald',sans-serif;
+  font-size:8.5px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--aged);
+  margin-bottom:7px;
+  opacity:.8;
+}
+.strike-val{
+  font-family:'Bangers',cursive;
+  font-size:30px;
+  letter-spacing:2px;
+  color:var(--amber-light);
+  text-shadow:2px 2px 0 rgba(100,30,0,.8);
+  line-height:1;
+}
+.strike-sub{
+  font-family:'Special Elite',cursive;
+  font-size:10px;
+  color:var(--aged);
+  margin-top:4px;
+  opacity:.75;
+}
+.strike.hot .strike-val{color:#3daa6f;text-shadow:2px 2px 0 rgba(0,50,20,.8);}
+.strike.danger .strike-val{color:#c87820;}
+.strike.kill .strike-val{color:var(--amber-light);}
+.strike.kill::before{background:linear-gradient(90deg,transparent,#3daa6f,transparent);}
+.strike.hit .strike-val{color:var(--amber);}
+
+/* ── SECTION HEADER ── */
+.sec-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:12px;
+  margin-top:4px;
+}
+.sec-title{
+  font-family:'Bangers',cursive;
+  font-size:18px;
+  letter-spacing:3px;
+  color:var(--amber-light);
+  text-shadow:1px 1px 0 rgba(100,30,0,.8);
+}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,var(--amber-dark),transparent)}
+.sec-tag{
+  font-family:'Oswald',sans-serif;
+  font-size:9px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--aged);
+  opacity:.6;
+}
+
+/* ── GRID LAYOUTS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px}
+
+/* ── INTEL CARD ── */
+.intel{
+  background:linear-gradient(160deg,#1a0e04,#0e0804);
+  border:1.5px solid var(--amber-dark);
+  box-shadow:4px 4px 0 rgba(0,0,0,.7);
+  padding:16px;
+}
+.intel-title{
+  font-family:'Bangers',cursive;
+  font-size:14px;
+  letter-spacing:2px;
+  color:var(--amber-light);
+  text-shadow:1px 1px 0 rgba(100,30,0,.8);
+  margin-bottom:4px;
+}
+.intel-sub{
+  font-family:'Oswald',sans-serif;
+  font-size:9px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--aged);
+  opacity:.6;
+  margin-bottom:12px;
+}
+
+/* ── BAR CHART ── */
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.bar-name{
+  font-family:'Oswald',sans-serif;
+  font-size:10px;
+  letter-spacing:.5px;
+  color:var(--aged);
+  width:70px;
+  flex-shrink:0;
+  text-align:right;
+}
+.bar-track{flex:1;height:12px;background:rgba(0,0,0,.4);border:1px solid rgba(200,120,32,.15);position:relative;overflow:hidden}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--blood),var(--amber));transition:width 1.2s ease-out}
+.bar-fill.green{background:linear-gradient(90deg,#1a5c30,#3daa6f)}
+.bar-fill.blue{background:linear-gradient(90deg,#1a3060,var(--data-blue))}
+.bar-val{
+  font-family:'Bangers',cursive;
+  font-size:12px;
+  letter-spacing:1px;
+  color:var(--amber-light);
+  width:36px;
+  text-align:right;
+}
+
+/* ── SCORE BREAKDOWN ── */
+.score-bar{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(200,120,32,.1)}
+.score-bar:last-child{border:none}
+.sb-lbl{
+  font-family:'Oswald',sans-serif;
+  font-size:9.5px;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  color:var(--aged);
+  width:100px;
+  opacity:.8;
+}
+.sb-track{flex:1;height:6px;background:rgba(0,0,0,.5);border:1px solid rgba(200,120,32,.1);overflow:hidden}
+.sb-fill{height:100%;transition:width 1.2s ease-out}
+.sb-val{
+  font-family:'Bangers',cursive;
+  font-size:12px;
+  color:var(--amber-light);
+  width:22px;
+  text-align:right;
+}
+
+/* ── OPERATIVE TABLE ── */
+.op-table{width:100%;border-collapse:collapse}
+.op-table th{
+  font-family:'Oswald',sans-serif;
+  font-size:8px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--amber-dark);
+  text-align:left;
+  padding:7px 10px;
+  border-bottom:2px solid var(--amber-dark);
+  font-weight:400;
+}
+.op-table td{
+  padding:10px 10px;
+  border-bottom:1px solid rgba(200,120,32,.1);
+  font-size:12px;
+  vertical-align:middle;
+  color:var(--parchment);
+}
+.op-table tr:last-child td{border-bottom:none}
+.op-table tbody tr{cursor:pointer;transition:background .1s}
+.op-table tbody tr:hover td{background:rgba(200,120,32,.06)}
+.op-cell{display:flex;align-items:center;gap:9px}
+.op-av{
+  width:30px;height:30px;
+  background:linear-gradient(135deg,var(--blood),#3a0000);
+  border:1.5px solid var(--amber-dark);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bangers',cursive;
+  font-size:11px;
+  color:var(--amber-light);
+  flex-shrink:0;
+}
+.op-name{font-family:'Bangers',cursive;font-size:13px;letter-spacing:1.5px;color:var(--amber-light)}
+.op-level{font-family:'Oswald',sans-serif;font-size:9px;color:var(--aged);letter-spacing:.5px;opacity:.7}
+.status-pill{
+  font-family:'Oswald',sans-serif;
+  font-size:9px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border:1px solid;
+}
+.sp-coaching{border-color:var(--amber-dark);color:var(--amber);background:rgba(200,120,32,.08)}
+.sp-dev{border-color:#5c0000;color:#e88080;background:rgba(92,0,0,.12)}
+.pct-bar{display:flex;align-items:center;gap:6px}
+.pct-track{flex:1;height:4px;background:rgba(0,0,0,.5);border:1px solid rgba(200,120,32,.15);overflow:hidden}
+.pct-fill{height:100%;background:linear-gradient(90deg,var(--blood),var(--amber))}
+.pct-fill.g{background:linear-gradient(90deg,#1a5c30,#3daa6f)}
+.pct-val{font-family:'Oswald',sans-serif;font-size:9.5px;color:var(--aged);width:34px;text-align:right}
+
+/* ── SESSION CARDS ── */
+.sess-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.sess-card{
+  background:linear-gradient(160deg,#1a0e04,#0e0804);
+  border:1.5px solid var(--amber-dark);
+  box-shadow:4px 4px 0 rgba(0,0,0,.7);
+  overflow:hidden;
+}
+.sess-card-head{
+  background:linear-gradient(135deg,var(--burnt),#120a04);
+  border-bottom:2px solid var(--amber-dark);
+  padding:12px 14px;
+}
+.sess-card-name{
+  font-family:'Bangers',cursive;
+  font-size:18px;
+  letter-spacing:3px;
+  color:var(--amber-light);
+  text-shadow:1px 1px 0 rgba(100,30,0,.8);
+}
+.sess-card-level{
+  font-family:'Oswald',sans-serif;
+  font-size:9px;
+  letter-spacing:1px;
+  color:var(--aged);
+  opacity:.7;
+  margin-top:2px;
+  text-transform:uppercase;
+}
+.sess-card-body{padding:12px 14px}
+.sess-metric{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(200,120,32,.1);font-family:'Special Elite',cursive;font-size:11.5px;color:var(--aged)}
+.sess-metric:last-child{border:none}
+.sess-metric span:last-child{
+  font-family:'Bangers',cursive;
+  font-size:14px;
+  letter-spacing:1px;
+  color:var(--amber-light);
+}
+.sess-metric span.good{color:#3daa6f}
+.sess-metric span.warn{color:var(--amber)}
+.sess-metric span.bad{color:#e88080}
+
+/* ── OUTCOME PILLS ── */
+.outcome{
+  font-family:'Bangers',cursive;
+  font-size:11px;
+  letter-spacing:2px;
+  padding:2px 8px;
+  border:1.5px solid;
+}
+.outcome-MTG{border-color:#3daa6f;color:#3daa6f;background:rgba(61,170,111,.08)}
+.outcome-VRB{border-color:var(--amber);color:var(--amber-light);background:rgba(200,120,32,.06)}
+.outcome-NI{border-color:#5c0000;color:#e88080;background:rgba(92,0,0,.08)}
+
+/* ── QUALITY CALL ROW ── */
+.call-row{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 10px;
+  border-bottom:1px solid rgba(200,120,32,.1);
+  cursor:pointer;
+  transition:background .1s;
+}
+.call-row:hover{background:rgba(200,120,32,.05)}
+.call-id{
+  font-family:'Bangers',cursive;
+  font-size:12px;
+  letter-spacing:1px;
+  color:var(--amber-dark);
+  width:60px;
+  flex-shrink:0;
+}
+.call-co{
+  flex:1;
+  font-family:'Special Elite',cursive;
+  font-size:12px;
+  color:var(--parchment);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.call-dur{
+  font-family:'Oswald',sans-serif;
+  font-size:10px;
+  color:var(--aged);
+  width:34px;
+  text-align:right;
+  opacity:.7;
+}
+.score-num{
+  font-family:'Bangers',cursive;
+  font-size:15px;
+  width:24px;
+  text-align:center;
+}
+
+/* ── DRAWER ── */
+.drawer{
+  display:none;position:fixed;right:0;top:0;bottom:0;width:440px;
+  background:linear-gradient(180deg,#0e0a04,#0a0805);
+  border-left:2px solid var(--amber);
+  z-index:100;flex-direction:column;
+  box-shadow:-8px 0 32px rgba(0,0,0,.8);
+  animation:slideIn .2s ease;
+}
+.drawer.open{display:flex}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:none;opacity:1}}
+.dr-head{
+  background:linear-gradient(135deg,var(--burnt),#120a04);
+  border-bottom:2px solid var(--amber-dark);
+  padding:16px 18px;
+  display:flex;align-items:flex-start;justify-content:space-between;
+}
+.dr-title{
+  font-family:'Bangers',cursive;
+  font-size:18px;
+  letter-spacing:3px;
+  color:var(--amber-light);
+  text-shadow:1px 1px 0 rgba(100,30,0,.8);
+}
+.dr-sub{
+  font-family:'Oswald',sans-serif;
+  font-size:9px;
+  letter-spacing:1px;
+  color:var(--aged);
+  opacity:.6;
+  margin-top:3px;
+  text-transform:uppercase;
+}
+.dr-close{
+  background:rgba(92,0,0,.4);
+  border:1.5px solid var(--amber-dark);
+  color:var(--parchment);
+  width:26px;height:26px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;
+  flex-shrink:0;
+}
+.dr-body{flex:1;overflow-y:auto;padding:16px}
+.dr-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.dr-mi{
+  background:rgba(0,0,0,.3);
+  border:1px solid rgba(200,120,32,.2);
+  padding:9px 11px;
+}
+.dr-mi-lbl{
+  font-family:'Oswald',sans-serif;
+  font-size:8px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--aged);
+  opacity:.7;
+  margin-bottom:3px;
+}
+.dr-mi-val{
+  font-family:'Bangers',cursive;
+  font-size:16px;
+  letter-spacing:1px;
+  color:var(--amber-light);
+}
+.dr-sec{
+  font-family:'Bangers',cursive;
+  font-size:13px;
+  letter-spacing:2px;
+  color:var(--amber);
+  margin:14px 0 8px;
+  padding-bottom:4px;
+  border-bottom:1px solid rgba(200,120,32,.2);
+}
+.note-box{
+  background:rgba(0,0,0,.3);
+  border-left:2px solid var(--amber-dark);
+  padding:10px 12px;
+  font-family:'Special Elite',cursive;
+  font-size:11.5px;
+  color:var(--aged);
+  line-height:1.6;
+  margin-bottom:7px;
+}
+.note-tag{
+  font-family:'Oswald',sans-serif;
+  font-size:8px;
+  letter-spacing:1px;
+  color:var(--amber);
+  text-transform:uppercase;
+  margin-bottom:3px;
+}
+.transcript-box{
+  background:rgba(0,0,0,.4);
+  border:1px solid rgba(200,120,32,.15);
+  padding:10px 12px;
+  font-family:'Special Elite',cursive;
+  font-size:11px;
+  color:var(--parchment);
+  line-height:1.7;
+  font-style:italic;
+  opacity:.85;
+  margin-bottom:10px;
+}
+.flag-box{
+  background:rgba(92,0,0,.15);
+  border:1px solid rgba(92,0,0,.4);
+  padding:8px 10px;
+  font-family:'Oswald',sans-serif;
+  font-size:9px;
+  letter-spacing:.8px;
+  color:#e88080;
+  text-transform:uppercase;
+}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{
+  background:linear-gradient(160deg,#1a0e04,#0a0805);
+  border:2px solid var(--amber);
+  box-shadow:8px 8px 0 rgba(0,0,0,.8);
+  padding:28px;
+  width:480px;
+}
+.modal-title{
+  font-family:'Bangers',cursive;
+  font-size:24px;
+  letter-spacing:4px;
+  color:var(--amber-light);
+  text-shadow:2px 2px 0 rgba(100,30,0,.9);
+  margin-bottom:4px;
+}
+.modal-sub{
+  font-family:'Special Elite',cursive;
+  font-size:12px;
+  color:var(--aged);
+  margin-bottom:20px;
+  opacity:.8;
+}
+.form-lbl{
+  font-family:'Oswald',sans-serif;
+  font-size:9px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--aged);
+  display:block;
+  margin-bottom:5px;
+  opacity:.8;
+}
+.form-inp,.form-sel{
+  width:100%;
+  background:rgba(0,0,0,.5);
+  border:2px solid var(--amber-dark);
+  color:var(--parchment);
+  padding:9px 12px;
+  font-family:'Special Elite',cursive;
+  font-size:13px;
+  outline:none;
+  margin-bottom:14px;
+  transition:border-color .15s;
+}
+.form-inp:focus,.form-sel:focus{border-color:var(--amber)}
+.form-sel option{background:#1a0e04}
+.drop{
+  border:2px dashed var(--amber-dark);
+  padding:20px;
+  text-align:center;
+  cursor:pointer;
+  transition:all .2s;
+  margin-bottom:14px;
+}
+.drop:hover{border-color:var(--amber);background:rgba(200,120,32,.04)}
+.drop-icon{font-size:24px;margin-bottom:5px}
+.drop-txt{font-family:'Special Elite',cursive;font-size:12px;color:var(--aged);opacity:.7}
+.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+
+/* ── DONUT ── */
+svg text{font-family:'Oswald',sans-serif}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:rgba(0,0,0,.3)}
+::-webkit-scrollbar-thumb{background:var(--amber-dark);border-radius:0}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="topnav">
+  <div class="brand-zone">
+    <div class="brand-skull">☠</div>
+    <div>
+      <div class="brand-name">CCK</div>
+      <div class="brand-sub">Intelligence Ops</div>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="switchTab('combined',this)">⚔ FINAL COMBINED</div>
+    <div class="nav-tab inactive" onclick="switchTab('session',this)">🎯 SESSION PERFORMANCE</div>
+    <div class="nav-tab inactive" onclick="switchTab('quality',this)">✏ CALL QUALITY ANALYSIS</div>
+  </div>
+  <div class="nav-right">
+    <button class="btn-ghost" onclick="openModal()">↑ UPLOAD</button>
+    <button class="btn-primary" onclick="openModal()">+ NEW MISSION →→</button>
+  </div>
+</div>
+
+<!-- SESSION STRIP -->
+<div class="sess-strip">
+  <span class="sess-label">MISSION DATE</span>
+  <span>Mar 28, 2026</span>
+  <span class="sess-divider">✦</span>
+  <span class="sess-label">CLIENT</span>
+  <span>Unknown</span>
+  <span class="sess-divider">✦</span>
+  <span class="sess-label">OPERATIVES</span>
+  <span>3</span>
+  <span class="sess-divider">✦</span>
+  <span class="sess-label">TOTAL DIALS</span>
+  <span>78</span>
+  <span class="sess-divider">✦</span>
+  <span class="sess-tag">PITCH COACHING REQUIRED</span>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- ══ TAB 1: FINAL COMBINED ══ -->
+  <div class="tab-pane active" id="tab-combined">
+    <!-- KPI STRIKE GRID -->
+    <div class="strike-grid">
+      <div class="strike"><div class="strike-label">Total Dials</div><div class="strike-val">78</div><div class="strike-sub">3 operatives</div></div>
+      <div class="strike hot"><div class="strike-label">Connects</div><div class="strike-val">10</div><div class="strike-sub">12.8% hit rate</div></div>
+      <div class="strike kill"><div class="strike-label">Meetings Booked</div><div class="strike-val">1</div><div class="strike-sub">David Li — GraceMark</div></div>
+      <div class="strike hit"><div class="strike-label">Engagements</div><div class="strike-val">5</div><div class="strike-sub">verbal + confirmed</div></div>
+      <div class="strike danger"><div class="strike-label">Avg Quality Score</div><div class="strike-val">32.3</div><div class="strike-sub">below 50pt target</div></div>
+      <div class="strike"><div class="strike-label">KPI Points</div><div class="strike-val">7</div><div class="strike-sub">total session</div></div>
+    </div>
+
+    <!-- ROW 2 -->
+    <div class="g2">
+      <div class="intel">
+        <div class="intel-title">OPERATIVE DIALS VS CONNECTS</div>
+        <div class="intel-sub">Session performance · Mar 28 2026</div>
+        <div class="bar-row"><div class="bar-name">DAVID LI</div><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><div class="bar-val">52</div></div>
+        <div class="bar-row"><div class="bar-name">CONNECTS</div><div class="bar-track"><div class="bar-fill green" style="width:15.4%"></div></div><div class="bar-val">8</div></div>
+        <div style="height:8px"></div>
+        <div class="bar-row"><div class="bar-name">SAVANAH</div><div class="bar-track"><div class="bar-fill" style="width:48.1%"></div></div><div class="bar-val">25</div></div>
+        <div class="bar-row"><div class="bar-name">CONNECTS</div><div class="bar-track"><div class="bar-fill green" style="width:8%"></div></div><div class="bar-val">2</div></div>
+        <div style="height:8px"></div>
+        <div class="bar-row"><div class="bar-name">MYSTERIOUS</div><div class="bar-track"><div class="bar-fill" style="width:1.9%"></div></div><div class="bar-val">1</div></div>
+      </div>
+      <div class="intel">
+        <div class="intel-title">SCORE AVERAGES — DAVID LI BDA</div>
+        <div class="intel-sub">8 calls scored · precision breakdown</div>
+        <div class="score-bar"><div class="sb-lbl">Opener</div><div class="sb-track"><div class="sb-fill" style="width:47.5%;background:linear-gradient(90deg,var(--blood),var(--amber))"></div></div><div class="sb-val">4.75</div></div>
+        <div class="score-bar"><div class="sb-lbl">Tonality</div><div class="sb-track"><div class="sb-fill" style="width:50%;background:linear-gradient(90deg,#1a3060,var(--data-blue))"></div></div><div class="sb-val">5.0</div></div>
+        <div class="score-bar"><div class="sb-lbl">Pitch Clarity</div><div class="sb-track"><div class="sb-fill" style="width:47.5%;background:linear-gradient(90deg,#1a5c30,#3daa6f)"></div></div><div class="sb-val">4.75</div></div>
+        <div class="score-bar"><div class="sb-lbl">Interest</div><div class="sb-track"><div class="sb-fill" style="width:20%;background:linear-gradient(90deg,var(--blood),#c87820)"></div></div><div class="sb-val">2.0</div></div>
+        <div class="score-bar"><div class="sb-lbl">Close Quality</div><div class="sb-track"><div class="sb-fill" style="width:80%;background:linear-gradient(90deg,#1a5c30,#3daa6f)"></div></div><div class="sb-val">8.0</div></div>
+        <div class="score-bar"><div class="sb-lbl">Overall</div><div class="sb-track"><div class="sb-fill" style="width:31.2%;background:linear-gradient(90deg,var(--blood),var(--amber))"></div></div><div class="sb-val">3.12</div></div>
+      </div>
+    </div>
+
+    <!-- OPERATIVE TABLE -->
+    <div class="intel">
+      <div class="sec-head"><div class="sec-title">OPERATIVE DOSSIER</div><div class="sec-line"></div><div class="sec-tag">CLICK ROW FOR FULL INTEL</div></div>
+      <table class="op-table">
+        <thead><tr>
+          <th>Operative</th><th>Level</th><th>Dials</th><th>Connects</th><th>Connect %</th>
+          <th>Engagements</th><th>KPI Pts</th><th>Quality Score</th><th>Status</th>
+        </tr></thead>
+        <tbody>
+          <tr onclick="openDrawerCombined('David Li - BDA')">
+            <td><div class="op-cell"><div class="op-av">DL</div><div><div class="op-name">DAVID LI BDA</div><div class="op-level">Level 1 BDA</div></div></div></td>
+            <td><span class="status-pill sp-coaching">L1 BDA</span></td>
+            <td><span style="font-family:'Bangers',cursive;color:var(--amber-light)">52</span></td>
+            <td><span style="font-family:'Bangers',cursive;color:#3daa6f">8</span></td>
+            <td><div class="pct-bar"><div class="pct-track"><div class="pct-fill" style="width:15.4%"></div></div><div class="pct-val">15.4%</div></div></td>
+            <td><span style="font-family:'Bangers',cursive;color:var(--amber-light)">3</span></td>
+            <td><span style="font-family:'Bangers',cursive;color:var(--amber-light)">5</span></td>
+            <td><div class="pct-bar"><div class="pct-track"><div class="pct-fill g" style="width:34.56%"></div></div><div class="pct-val">34.6</div></div></td>
+            <td><span class="status-pill sp-coaching">Pitch Coaching</span></td>
+          </tr>
+          <tr onclick="openDrawerCombined('Savanah')">
+            <td><div class="op-cell"><div class="op-av">SV</div><div><div class="op-name">SAVANAH</div><div class="op-level">FT Caller</div></div></div></td>
+            <td><span class="status-pill sp-coaching">FT</span></td>
+            <td><span style="font-family:'Bangers',cursive;color:var(--amber-light)">25</span></td>
+            <td><span style="font-family:'Bangers',cursive;color:#3daa6f">2</span></td>
+            <td><div class="pct-bar"><div class="pct-track"><div class="pct-fill" style="width:8%"></div></div><div class="pct-val">8.0%</div></div></td>
+            <td><span style="font-family:'Bangers',cursive;color:var(--amber-light)">2</span></td>
+            <td><span style="font-family:'Bangers',cursive;color:var(--amber-light)">2</span></td>
+            <td><div class="pct-bar"><div class="pct-track"><div class="pct-fill" style="width:30%"></div></div><div class="pct-val">30.0</div></div></td>
+            <td><span class="status-pill sp-coaching">Pitch Coaching</span></td>
+          </tr>
+          <tr onclick="openDrawerCombined('Mysterious')">
+            <td><div class="op-cell"><div class="op-av" style="border-color:var(--blood)">MY</div><div><div class="op-name">MYSTERIOUS</div><div class="op-level">mysterious</div></div></div></td>
+            <td><span class="status-pill sp-dev">UNKNOWN</span></td>
+            <td><span style="font-family:'Bangers',cursive;color:var(--amber-light)">1</span></td>
+            <td><span style="font-family:'Bangers',cursive;color:#e88080">0</span></td>
+            <td><div class="pct-bar"><div class="pct-track"><div class="pct-fill" style="width:0%"></div></div><div class="pct-val">0%</div></div></td>
+            <td><span style="font-family:'Bangers',cursive;color:var(--amber-light)">0</span></td>
+            <td><span style="font-family:'Bangers',cursive;color:var(--amber-light)">0</span></td>
+            <td><div class="pct-bar"><div class="pct-track"><div class="pct-fill" style="width:0%"></div></div><div class="pct-val">0</div></div></td>
+            <td><span class="status-pill sp-dev">Developing</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ TAB 2: SESSION PERFORMANCE ══ -->
+  <div class="tab-pane" id="tab-session">
+    <div class="sess-cards">
+      <div class="sess-card">
+        <div class="sess-card-head">
+          <div class="sess-card-name">DAVID LI — BDA</div>
+          <div class="sess-card-level">Level 1 BDA · <span class="status-pill sp-coaching" style="font-size:8px;padding:1px 6px">Pitch Coaching</span></div>
+        </div>
+        <div class="sess-card-body">
+          <div class="sess-metric"><span>Total Dials</span><span>52</span></div>
+          <div class="sess-metric"><span>Connects</span><span class="good">8</span></div>
+          <div class="sess-metric"><span>Connect Rate</span><span class="good">15.4%</span></div>
+          <div class="sess-metric"><span>Active Talk Time</span><span>00:26:55</span></div>
+          <div class="sess-metric"><span>Verbal Agreed</span><span>2</span></div>
+          <div class="sess-metric"><span>Meetings Booked</span><span class="good">1</span></div>
+          <div class="sess-metric"><span>Engagement Rate</span><span>37.5%</span></div>
+          <div class="sess-metric"><span>KPI Points</span><span>5</span></div>
+          <div class="sess-metric"><span>KPI / Hour</span><span>11.15</span></div>
+          <div class="sess-metric"><span>Quality Score</span><span>34.58</span></div>
+          <div class="sess-metric"><span>Calls Analysed</span><span>8</span></div>
+          <div class="sess-metric"><span>Calls Flagged</span><span class="bad">44</span></div>
+        </div>
+      </div>
+      <div class="sess-card">
+        <div class="sess-card-head">
+          <div class="sess-card-name">SAVANAH</div>
+          <div class="sess-card-level">FT Caller · <span class="status-pill sp-coaching" style="font-size:8px;padding:1px 6px">Pitch Coaching</span></div>
+        </div>
+        <div class="sess-card-body">
+          <div class="sess-metric"><span>Total Dials</span><span>25</span></div>
+          <div class="sess-metric"><span>Connects</span><span class="good">2</span></div>
+          <div class="sess-metric"><span>Connect Rate</span><span class="warn">8.0%</span></div>
+          <div class="sess-metric"><span>Active Talk Time</span><span>00:13:21</span></div>
+          <div class="sess-metric"><span>Verbal Agreed</span><span>2</span></div>
+          <div class="sess-metric"><span>Meetings Booked</span><span>0</span></div>
+          <div class="sess-metric"><span>Engagement Rate</span><span class="good">100%</span></div>
+          <div class="sess-metric"><span>KPI Points</span><span>2</span></div>
+          <div class="sess-metric"><span>KPI / Hour</span><span>8.99</span></div>
+          <div class="sess-metric"><span>Quality Score</span><span>30.0</span></div>
+          <div class="sess-metric"><span>Calls Analysed</span><span>2</span></div>
+          <div class="sess-metric"><span>Calls Flagged</span><span class="bad">24</span></div>
+        </div>
+      </div>
+      <div class="sess-card">
+        <div class="sess-card-head" style="background:linear-gradient(135deg,#2a0808,#120404)">
+          <div class="sess-card-name">MYSTERIOUS</div>
+          <div class="sess-card-level">mysterious · <span class="status-pill sp-dev" style="font-size:8px;padding:1px 6px">Developing</span></div>
+        </div>
+        <div class="sess-card-body">
+          <div class="sess-metric"><span>Total Dials</span><span>1</span></div>
+          <div class="sess-metric"><span>Connects</span><span class="bad">0</span></div>
+          <div class="sess-metric"><span>Connect Rate</span><span class="bad">0%</span></div>
+          <div class="sess-metric"><span>Active Talk Time</span><span>00:00:06</span></div>
+          <div class="sess-metric"><span>Verbal Agreed</span><span>0</span></div>
+          <div class="sess-metric"><span>Meetings Booked</span><span>0</span></div>
+          <div class="sess-metric"><span>Engagement Rate</span><span>0%</span></div>
+          <div class="sess-metric"><span>KPI Points</span><span>0</span></div>
+          <div class="sess-metric"><span>KPI / Hour</span><span>0</span></div>
+          <div class="sess-metric"><span>Quality Score</span><span>0</span></div>
+          <div class="sess-metric"><span>Calls Analysed</span><span>0</span></div>
+          <div class="sess-metric"><span>Calls Flagged</span><span>1</span></div>
+        </div>
+      </div>
+    </div>
+    <!-- Session bar chart -->
+    <div class="intel">
+      <div class="sec-head"><div class="sec-title">SESSION ACTIVITY BREAKDOWN</div><div class="sec-line"></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div class="intel-sub" style="margin-bottom:10px">DIALS / CONNECTS / ENGAGEMENTS</div>
+          <div class="bar-row"><div class="bar-name">DIALS</div><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><div class="bar-val">78</div></div>
+          <div class="bar-row"><div class="bar-name">CONNECTS</div><div class="bar-track"><div class="bar-fill green" style="width:12.8%"></div></div><div class="bar-val">10</div></div>
+          <div class="bar-row"><div class="bar-name">ENGAGEMENTS</div><div class="bar-track"><div class="bar-fill blue" style="width:6.4%"></div></div><div class="bar-val">5</div></div>
+          <div class="bar-row"><div class="bar-name">MTG BOOKED</div><div class="bar-track"><div class="bar-fill green" style="width:1.3%"></div></div><div class="bar-val">1</div></div>
+        </div>
+        <div>
+          <div class="intel-sub" style="margin-bottom:10px">ACTIVE TALK TIME SHARE</div>
+          <div class="bar-row"><div class="bar-name">DAVID LI</div><div class="bar-track"><div class="bar-fill" style="width:66.8%"></div></div><div class="bar-val">26:55</div></div>
+          <div class="bar-row"><div class="bar-name">SAVANAH</div><div class="bar-track"><div class="bar-fill" style="width:33.2%"></div></div><div class="bar-val">13:21</div></div>
+          <div class="bar-row"><div class="bar-name">MYSTERIOUS</div><div class="bar-track"><div class="bar-fill" style="width:.4%"></div></div><div class="bar-val">0:06</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB 3: CALL QUALITY ANALYSIS ══ -->
+  <div class="tab-pane" id="tab-quality">
+    <div class="intel">
+      <div class="sec-head"><div class="sec-title">MISSION LOGS — ALL STRIKES</div><div class="sec-line"></div><div class="sec-tag">CLICK ROW FOR FULL DEBRIEF</div></div>
+      <!-- header row -->
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:2px solid var(--amber-dark)">
+        <div style="font-family:'Oswald',sans-serif;font-size:8px;letter-spacing:1.5px;color:var(--amber-dark);width:60px">CALL ID</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:8px;letter-spacing:1.5px;color:var(--amber-dark);flex:1">TARGET / COMPANY</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:8px;letter-spacing:1.5px;color:var(--amber-dark);width:80px">OPERATIVE</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:8px;letter-spacing:1.5px;color:var(--amber-dark);width:50px;text-align:center">OUTCOME</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:8px;letter-spacing:1.5px;color:var(--amber-dark);width:26px;text-align:center">OPN</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:8px;letter-spacing:1.5px;color:var(--amber-dark);width:26px;text-align:center">TON</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:8px;letter-spacing:1.5px;color:var(--amber-dark);width:26px;text-align:center">PCH</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:8px;letter-spacing:1.5px;color:var(--amber-dark);width:26px;text-align:center">INT</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:8px;letter-spacing:1.5px;color:var(--amber-dark);width:26px;text-align:center">TOT</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:8px;letter-spacing:1.5px;color:var(--amber-dark);width:40px;text-align:right">TALK%</div>
+      </div>
+      <div id="call-rows"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER -->
+<div class="drawer" id="drawer">
+  <div class="dr-head">
+    <div><div class="dr-title" id="dr-title">OPERATIVE INTEL</div><div class="dr-sub" id="dr-sub">Full debrief</div></div>
+    <div class="dr-close" onclick="closeDrawer()">✕</div>
+  </div>
+  <div class="dr-body" id="dr-body"></div>
+</div>
+
+<!-- UPLOAD MODAL -->
+<div class="overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-title">NEW MISSION BRIEFING</div>
+    <div class="modal-sub">Upload call recordings and operative log to begin intelligence processing</div>
+    <label class="form-lbl">Mission / Analyst Callsign</label>
+    <input class="form-inp" placeholder="e.g. David Li — Mar 28 Sprint">
+    <label class="form-lbl">Recordings Archive (.zip)</label>
+    <div class="drop" onclick="this.querySelector('input').click()">
+      <div class="drop-icon">🎙</div>
+      <div class="drop-txt">Drop .zip of recordings or click to browse</div>
+      <input type="file" accept=".zip" style="display:none">
+    </div>
+    <label class="form-lbl">Operative Log (.xlsx)</label>
+    <div class="drop" onclick="this.querySelector('input').click()">
+      <div class="drop-icon">📋</div>
+      <div class="drop-txt">Drop .xlsx call log or click to browse</div>
+      <input type="file" accept=".xlsx" style="display:none">
+    </div>
+    <div class="modal-row">
+      <div><label class="form-lbl">Sheet Selection</label>
+      <select class="form-sel"><option>All Sheets</option><option>Sheet 1</option><option>Sheet 2</option></select></div>
+      <div><label class="form-lbl">Mission Period</label>
+      <input class="form-inp" placeholder="Mar 28, 2026" style="margin:0"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">ABORT</button>
+      <button class="btn-primary" onclick="closeModal()">DEPLOY ANALYSIS →→</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const calls=[
+  {id:'rc_1155',caller:'David Li - BDA',company:'WorkWiser.io',industry:'Outsourcing',dur:12,outcome:'NI',opener:1,tonality:1,pitch:1,interest:1,close_q:0,overall:1,talk:100,obj_raised:'N',obj_handled:'N/A',close_att:'N',next_step:'N',transcript:'Please leave your message for 346-71629.',opener_notes:'No opener present; only a generic voicemail instruction. Mission failed at first contact.',flag:'fuzzy_match, no_benchmark'},
+  {id:'rc_354',caller:'Savanah',company:'World Wide Outsource',industry:'Business Consulting',dur:12,outcome:'VRB',opener:1,tonality:1,pitch:1,interest:1,close_q:0,overall:1,talk:100,obj_raised:'N',obj_handled:'N/A',close_att:'N',next_step:'N',transcript:'The person you are trying to reach is currently unavailable. Please leave a message after the tone.',opener_notes:'No actual opener delivered — call went directly to voicemail. No human contact made.',flag:'no_benchmark'},
+  {id:'rc_919',caller:'David Li - BDA',company:'Staffed INC.',industry:'Staffing & Recruiting',dur:29,outcome:'NI',opener:8,tonality:7,pitch:9,interest:1,close_q:0,overall:4,talk:100,obj_raised:'Y',obj_handled:'N',close_att:'N',next_step:'N',transcript:"Hi, is this Martin? Yes. Hi Martin. This is David. I'm calling from 550 Holdings. We haven't spoken before, but we've been looking at strong operators in staffing and recruiting and your company came up...",opener_notes:'Direct and context-setting. Mentions company and industry relevance. Could be more personalized to drive interest beyond opener.',flag:'no_benchmark'},
+  {id:'rc_1078',caller:'David Li - BDA',company:'AVAS',industry:'Real Estate',dur:9,outcome:'VRB',opener:3,tonality:5,pitch:2,interest:1,close_q:0,overall:2,talk:100,obj_raised:'N',obj_handled:'N/A',close_att:'N',next_step:'N',transcript:'Hello, Yaris. Jim. Sorry I missed your call, but please leave a message for a fact.',opener_notes:'Opener is incomplete and confusing — appears to be a voicemail message rather than a direct cold call opener.',flag:'no_benchmark'},
+  {id:'rc_940',caller:'David Li - BDA',company:'Abuelita Mexican Food',industry:'Food & Beverages',dur:75,outcome:'NI',opener:4,tonality:6,pitch:5,interest:2,close_q:0,overall:3,talk:63.6,obj_raised:'Y',obj_handled:'N',close_att:'N',next_step:'N',transcript:"Hello? Hi, this is Eugene. Yes, can I help you? Hi, yeah, I'm David. We haven't spoken before, but we've been looking at strong operators in the beverage industry and you're breaking up like big time...",opener_notes:'Opener somewhat unclear and interrupted by technical issues. Mentions industry relevance but connection problems disrupted flow.',flag:'no_benchmark'},
+  {id:'rc_988',caller:'David Li - BDA',company:'El Condor',industry:'Retail',dur:26,outcome:'VRB',opener:2,tonality:5,pitch:3,interest:1,close_q:0,overall:2,talk:100,obj_raised:'N',obj_handled:'N/A',close_att:'N',next_step:'N',transcript:"Hey, your leader, Evan Romero. I'm sorry I missed your call. If you'd like to leave your name and number, I'll gladly return it.",opener_notes:'Incomplete — voicemail message rather than direct cold call. No clear introduction or value proposition delivered.',flag:'no_benchmark'},
+  {id:'rc_1017',caller:'David Li - BDA',company:'San Jose Network Ltd.',industry:'Advertising',dur:34,outcome:'NI',opener:6,tonality:5,pitch:7,interest:1,close_q:0,overall:3,talk:100,obj_raised:'Y',obj_handled:'N',close_att:'N',next_step:'N',transcript:"This is George. Hi George. Yeah. Hi, I'm David. I'm with 550 holdings. We haven't spoken before, but we've been looking at strong operators in advertising and your company came up...",opener_notes:"Caller introduces himself and company, mentions research on the industry. Clear but could be more engaging or personalized.",flag:'no_benchmark'},
+  {id:'rc_98',caller:'Savanah',company:'QRoom LLC',industry:'Marketing Services',dur:140,outcome:'VRB',opener:6,tonality:7,pitch:8,interest:4,close_q:0,overall:5,talk:75.7,obj_raised:'Y',obj_handled:'N',close_att:'N',next_step:'Y',transcript:"Hi babe, this is Savannah calling from 550 Holdings. Am I speaking with Ali? No, my name is Andio. Andio, can I just ask, are you from the marketing services? Yeah. Yes. And what do you need? I just wanted to see if you are the owner of Q Room 360...",opener_notes:"Started with casual greeting, initial confusion about prospect's name but quickly corrected. Good recovery. Next step agreed.",flag:'no_benchmark'},
+  {id:'rc_1350',caller:'David Li - BDA',company:'GraceMark Solutions',industry:'Staffing & Recruiting',dur:166,outcome:'MTG',opener:8,tonality:7,pitch:6,interest:7,close_q:8,overall:7,talk:71.1,obj_raised:'Y',obj_handled:'Y',close_att:'Y',next_step:'Y',transcript:"Hello? Hi, is this Ernesto? Yes. Hi Ernesto, this is David. I'm calling from 550 Holdings. We haven't spoken before, but we've been looking at strong operators in staffing and recruiting and your company came up...",opener_notes:"Direct, establishes credibility, introduces relevant topic. Objection handled successfully. Meeting booked. Best call of session — a confirmed kill.",flag:'no_benchmark'},
+  {id:'rc_1270',caller:'David Li - BDA',company:'Agility 360',industry:'Financial Services',dur:61,outcome:'NI',opener:6,tonality:4,pitch:5,interest:2,close_q:0,overall:3,talk:14.4,obj_raised:'Y',obj_handled:'N',close_att:'N',next_step:'N',transcript:"Hello? Cesar. Hi. Hi Cesar. I'm David. I'm calling from 550 Holdings. We haven't spoken before, but we've been looking at strong operators in financial services and your company came up. Have you ever thought about bringing on a partner or planning a future exit? No. Okay...",opener_notes:"Opener identifies caller and company, states purpose. Somewhat abrupt and lacks personalization or clear value proposition. Prospect disengaged quickly.",flag:'no_benchmark'},
+];
+
+const combined={
+  'David Li - BDA':{level:'Level 1 BDA',dials:52,connects:8,connect_rate:15.4,engagements:3,eng_rate:37.5,mtg_conv:33.3,kpi:5,kpi_hr:11.15,quality:34.56,opener:4.75,tonality:5.0,pitch:4.75,interest:2.0,close_q:8.0,overall:3.12,close_att_rate:12.5,obj_handle:20,calls_scored:8,status:'Pitch Coaching'},
+  'Savanah':{level:'FT Caller',dials:25,connects:2,connect_rate:8.0,engagements:2,eng_rate:100,mtg_conv:0,kpi:2,kpi_hr:8.99,quality:30.0,opener:3.5,tonality:4.0,pitch:4.5,interest:2.5,close_q:'N/A',overall:3.0,close_att_rate:0,obj_handle:0,calls_scored:2,status:'Pitch Coaching'},
+  'Mysterious':{level:'mysterious',dials:1,connects:0,connect_rate:0,engagements:0,eng_rate:0,mtg_conv:0,kpi:0,kpi_hr:0,quality:0,opener:'N/A',tonality:'N/A',pitch:'N/A',interest:'N/A',close_q:'N/A',overall:'N/A',close_att_rate:0,obj_handle:0,calls_scored:0,status:'Developing'}
+};
+
+const skeys=['opener','tonality','pitch','interest','close_q','overall'];
+const slabels=['Opener','Tonality','Pitch Clarity','Interest','Close Quality','Overall'];
+const scolors=['linear-gradient(90deg,var(--blood),var(--amber))','linear-gradient(90deg,#1a3060,#2a70c0)','linear-gradient(90deg,#1a5c30,#3daa6f)','linear-gradient(90deg,var(--blood),#c87820)','linear-gradient(90deg,#1a5c30,#3daa6f)','linear-gradient(90deg,var(--blood),var(--amber))'];
+
+function switchTab(id,el){
+  document.querySelectorAll('.nav-tab').forEach(t=>{t.className='nav-tab inactive'});
+  el.className='nav-tab active';
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+}
+function openModal(){document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');}
+
+const scoreColor=(v)=>{
+  if(typeof v!=='number')return 'var(--aged)';
+  if(v>=7)return '#3daa6f';if(v>=4)return 'var(--amber)';return '#e88080';
+};
+
+function scoreRowsHTML(d){
+  return skeys.map((k,i)=>{
+    const v=d[k];const p=typeof v==='number'?(v/10*100):0;
+    return `<div class="score-bar"><div class="sb-lbl">${slabels[i]}</div><div class="sb-track"><div class="sb-fill" style="width:${p}%;background:${scolors[i]}"></div></div><div class="sb-val" style="color:${scoreColor(v)}">${v}</div></div>`;
+  }).join('');
+}
+
+function openDrawerCombined(name){
+  const d=combined[name];
+  document.getElementById('dr-title').textContent=name.toUpperCase();
+  document.getElementById('dr-sub').textContent='COMBINED INTEL DOSSIER · '+d.level;
+  document.getElementById('dr-body').innerHTML=`
+    <div class="dr-meta-grid">
+      <div class="dr-mi"><div class="dr-mi-lbl">Level</div><div class="dr-mi-val" style="font-size:13px">${d.level}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Status</div><div class="dr-mi-val" style="color:var(--amber);font-size:13px">${d.status}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Total Dials</div><div class="dr-mi-val">${d.dials}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Connects</div><div class="dr-mi-val" style="color:#3daa6f">${d.connects}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Connect Rate</div><div class="dr-mi-val">${d.connect_rate}%</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Engagements</div><div class="dr-mi-val">${d.engagements}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Eng. Rate</div><div class="dr-mi-val">${d.eng_rate}%</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">KPI Points</div><div class="dr-mi-val">${d.kpi}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">KPI / Hour</div><div class="dr-mi-val">${d.kpi_hr}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Quality Score</div><div class="dr-mi-val">${d.quality}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Calls Scored</div><div class="dr-mi-val">${d.calls_scored}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Mtg Conv.</div><div class="dr-mi-val">${d.mtg_conv}%</div></div>
+    </div>
+    <div class="dr-sec">★ SCORE BREAKDOWN (AVG)</div>
+    ${scoreRowsHTML(d)}
+    <div class="dr-sec">✦ TACTICAL RATES</div>
+    <div class="note-box"><div class="note-tag">Close Attempt Rate</div>${d.close_att_rate}% of connected calls advanced to close</div>
+    <div class="note-box"><div class="note-tag">Objection Handle Rate</div>${d.obj_handle}% of objections successfully handled</div>
+    <div class="note-box"><div class="note-tag">Meeting Conversion Rate</div>${d.mtg_conv}% of engagements converted to meetings</div>
+  `;
+  document.getElementById('drawer').classList.add('open');
+}
+
+function openDrawerCall(i){
+  const c=calls[i];
+  document.getElementById('dr-title').textContent=c.id.toUpperCase();
+  document.getElementById('dr-sub').textContent=c.company.toUpperCase()+' · '+c.caller.toUpperCase();
+  const d={opener:c.opener,tonality:c.tonality,pitch:c.pitch,interest:c.interest,close_q:c.close_q,overall:c.overall};
+  document.getElementById('dr-body').innerHTML=`
+    <div class="dr-meta-grid">
+      <div class="dr-mi"><div class="dr-mi-lbl">Operative</div><div class="dr-mi-val" style="font-size:12px">${c.caller}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Outcome</div><div class="dr-mi-val"><span class="outcome outcome-${c.outcome}">${c.outcome}</span></div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Duration</div><div class="dr-mi-val">${c.dur}s</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Talk Ratio</div><div class="dr-mi-val">${c.talk}%</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Objection Raised</div><div class="dr-mi-val" style="color:${c.obj_raised==='Y'?'var(--amber)':'var(--aged)'}">${c.obj_raised}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Next Step</div><div class="dr-mi-val" style="color:${c.next_step==='Y'?'#3daa6f':'#e88080'}">${c.next_step}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Close Attempted</div><div class="dr-mi-val">${c.close_att}</div></div>
+      <div class="dr-mi"><div class="dr-mi-lbl">Obj. Handled</div><div class="dr-mi-val">${c.obj_handled}</div></div>
+    </div>
+    <div class="dr-sec">★ SCORE BREAKDOWN</div>
+    ${scoreRowsHTML(d)}
+    <div class="dr-sec">✦ INTELLIGENCE NOTES</div>
+    <div class="note-box"><div class="note-tag">Opener Analysis</div>${c.opener_notes}</div>
+    <div class="dr-sec">✦ TRANSCRIPT FRAGMENT</div>
+    <div class="transcript-box">"${c.transcript}"</div>
+    <div class="flag-box">⚑ FLAG: ${c.flag} &nbsp;·&nbsp; Industry: ${c.industry}</div>
+  `;
+  document.getElementById('drawer').classList.add('open');
+}
+
+// Build call quality rows
+(function(){
+  const container=document.getElementById('call-rows');
+  calls.forEach((c,i)=>{
+    const div=document.createElement('div');
+    div.className='call-row';
+    div.onclick=()=>openDrawerCall(i);
+    const sc=scoreColor;
+    div.innerHTML=`
+      <div class="call-id">${c.id}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'Special Elite',cursive;font-size:12px;color:var(--parchment);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.company}</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:9px;color:var(--aged);opacity:.6;letter-spacing:.5px;margin-top:1px">${c.caller} · ${c.industry}</div>
+      </div>
+      <div style="width:80px;flex-shrink:0">
+        <div style="font-family:'Special Elite',cursive;font-size:10px;color:var(--aged);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.caller.split(' ')[0]}</div>
+      </div>
+      <div style="width:50px;text-align:center;flex-shrink:0"><span class="outcome outcome-${c.outcome}">${c.outcome}</span></div>
+      <div class="score-num" style="color:${sc(c.opener)}">${c.opener}</div>
+      <div class="score-num" style="color:${sc(c.tonality)}">${c.tonality}</div>
+      <div class="score-num" style="color:${sc(c.pitch)}">${c.pitch}</div>
+      <div class="score-num" style="color:${sc(c.interest)}">${c.interest}</div>
+      <div class="score-num" style="color:${sc(c.overall)};font-size:18px">${c.overall}</div>
+      <div style="width:40px;text-align:right;font-family:'Oswald',sans-serif;font-size:10px;color:var(--aged)">${c.talk}%</div>
+    `;
+    container.appendChild(div);
+  });
+})();
+</script>
+</body>
+</html>
